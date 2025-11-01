@@ -1,22 +1,20 @@
-// file: api/binance-proxy.js
 export default async function handler(req, res) {
   try {
     const url = new URL(req.url, "http://localhost");
-    const path = url.pathname.toLowerCase();
+    const type = url.searchParams.get("type") || "openinterest";
+    const symbol = (url.searchParams.get("symbol") || "BTCUSDT").toUpperCase();
+
     const base = "https://fapi.binance.com";
     let target = "";
 
-    if (path.endsWith("/api/openinterest")) {
-      const symbol = (url.searchParams.get("symbol") || "BTCUSDT").toUpperCase();
+    if (type === "openinterest") {
       target = `${base}/fapi/v1/openInterest?symbol=${symbol}`;
-    } else if (path.endsWith("/api/fundingrate")) {
-      const symbol = (url.searchParams.get("symbol") || "BTCUSDT").toUpperCase();
+    } else if (type === "fundingrate") {
       target = `${base}/fapi/v1/fundingRate?symbol=${symbol}&limit=1`;
-    } else if (path.endsWith("/api/longshort")) {
-      const symbol = (url.searchParams.get("symbol") || "BTCUSDT").toUpperCase();
+    } else if (type === "longshort") {
       target = `${base}/futures/data/globalLongShortAccountRatio?symbol=${symbol}&period=5m&limit=1`;
     } else {
-      return res.status(404).json({ error: "Use /api/openinterest, /api/fundingrate, or /api/longshort" });
+      return res.status(404).json({ error: "Invalid type. Use ?type=openinterest|fundingrate|longshort" });
     }
 
     const response = await fetch(target, {
@@ -31,7 +29,6 @@ export default async function handler(req, res) {
     const data = await response.json();
     res.setHeader("Access-Control-Allow-Origin", "*");
     return res.status(200).json(data);
-
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
