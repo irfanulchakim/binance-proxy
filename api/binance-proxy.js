@@ -1,3 +1,7 @@
+export const config = {
+  regions: ["iad1", "cdg1"], // deploy to non-restricted region
+};
+
 export default async function handler(req, res) {
   try {
     const url = new URL(req.url, "http://localhost");
